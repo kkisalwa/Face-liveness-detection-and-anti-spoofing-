@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FaceShield - Face Anti-Spoofing Detection</title>
+  <meta name="description" content="Real-time face liveness and anti-spoofing detection system." />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+
+<body>
+
+  <div class="bg-grid"></div>
+  <div class="bg-orb orb-blue"></div>
+  <div class="bg-orb orb-purple"></div>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="logo">
+      <div class="logo-icon">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M14 2L4 6V13C4 18.5 8.5 23.7 14 25C19.5 23.7 24 18.5 24 13V6L14 2Z" fill="url(#shieldGrad)"
+            opacity="0.2" />
+          <path d="M14 2L4 6V13C4 18.5 8.5 23.7 14 25C19.5 23.7 24 18.5 24 13V6L14 2Z" stroke="url(#shieldGrad)"
+            stroke-width="1.8" fill="none" />
+          <circle cx="14" cy="13" r="4" fill="url(#shieldGrad)" opacity="0.9" />
+          <circle cx="14" cy="13" r="1.8" fill="white" opacity="0.7" />
+          <defs>
+            <linearGradient id="shieldGrad" x1="4" y1="2" x2="24" y2="25" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#60a5fa" />
+              <stop offset="100%" stop-color="#a78bfa" />
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <div class="logo-text">
+        <span class="logo-name">FaceShield</span>
+        <span class="logo-sub">Anti-Spoofing AI</span>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <div class="status-badge" id="connection-status">
+        <span class="badge-dot" id="badge-dot"></span>
+        <span id="status-label">Connecting...</span>
+      </div>
+      <button class="hdr-btn" onclick="window.open('/docs','_blank')">API Docs</button>
+    </div>
+  </header>
+
+  <!-- MAIN PAGE -->
+  <div class="page-wrap">
+
+    <!-- LEFT: Camera -->
+    <div class="left-col">
+
+      <div class="section-header">
+        <h1 class="section-title">Live Detection Feed</h1>
+        <div class="live-badge" id="live-badge">
+          <span class="live-dot" id="live-dot"></span>
+          <span id="live-label">STANDBY</span>
+        </div>
+      </div>
+
+      <!-- Video feed box -->
+      <div class="video-box" id="video-box">
+        <div class="vid-placeholder" id="vid-placeholder">
+          <div class="cam-icon">
+            <svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="6" y="14" width="44" height="33" rx="5" stroke="currentColor" stroke-width="2"
+                stroke-dasharray="5 3" />
+              <circle cx="28" cy="30" r="9" stroke="currentColor" stroke-width="2" />
+              <circle cx="28" cy="30" r="3.5" fill="currentColor" opacity="0.35" />
+              <rect x="20" y="9" width="16" height="7" rx="3.5" stroke="currentColor" stroke-width="2" />
+              <circle cx="46" cy="21" r="2.5" fill="currentColor" opacity="0.5" />
+            </svg>
+          </div>
+          <p class="ph-title">Camera Inactive</p>
+          <p class="ph-sub">Press <b>Start Detection</b> to begin</p>
+        </div>
+
+        <img id="live-frame" class="live-img hidden" alt="Live detection feed" />
+
+        <!-- Corner decorators -->
+        <div class="corner c-tl"></div>
+        <div class="corner c-tr"></div>
+        <div class="corner c-bl"></div>
+        <div class="corner c-br"></div>
+
+        <div class="rec-badge hidden" id="rec-badge">
+          <span class="rec-dot"></span> LIVE
+        </div>
+      </div>
+
+      <!-- Buttons -->
+      <div class="controls-row">
+        <button class="ctrl-btn btn-start" id="btn-start" onclick="startDetection()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8 5v14l11-7z" />
+          </svg>
+          Start Detection
+        </button>
+        <button class="ctrl-btn btn-stop hidden" id="btn-stop" onclick="stopDetection()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+            <rect x="6" y="6" width="12" height="12" rx="1" />
+          </svg>
+          Stop
+        </button>
+        <button class="ctrl-btn btn-snap" id="btn-snap" onclick="takeSnapshot()" disabled>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
+            <circle cx="12" cy="13" r="4" />
+          </svg>
+          Snapshot
+        </button>
+      </div>
+
+      <!-- Result card -->
+      <div class="result-card" id="result-card">
+        <div class="result-icon-box" id="result-icon-box">
+          <svg id="icon-search" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <svg id="icon-check" class="hidden" width="26" height="26" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2.5">
+            <path d="M20 6L9 17l-5-5" />
+          </svg>
+          <svg id="icon-warn" class="hidden" width="26" height="26" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+            <line x1="12" y1="9" x2="12" y2="13" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
+        </div>
+        <div class="result-text">
+          <div class="result-title" id="result-title">No Face Detected</div>
+          <div class="result-desc" id="result-desc">Point camera at a face to begin analysis</div>
+        </div>
+        <div class="result-pct" id="result-pct">--</div>
+      </div>
+
+    </div><!-- /left-col -->
+
+    <!-- RIGHT: Stats panel -->
+    <div class="right-col">
+
+      <!-- Stats -->
+      <div class="card">
+        <div class="card-hdr">Session Statistics</div>
+        <div class="stats-grid">
+          <div class="stat-box">
+            <div class="stat-num" id="s-total">0</div>
+            <div class="stat-lbl">Total</div>
+          </div>
+          <div class="stat-box green-box">
+            <div class="stat-num green-num" id="s-real">0</div>
+            <div class="stat-lbl">Real</div>
+          </div>
+          <div class="stat-box red-box">
+            <div class="stat-num red-num" id="s-spoof">0</div>
+            <div class="stat-lbl">Spoof</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-num" id="s-rate">--</div>
+            <div class="stat-lbl">Real Rate</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Analysis meters -->
+      <div class="card">
+        <div class="card-hdr">Live Analysis</div>
+
+        <div class="meter-row">
+          <div class="meter-lbl">
+            <span>Real Confidence</span>
+            <span class="meter-pct" id="real-pct">0.0%</span>
+          </div>
+          <div class="meter-track">
+            <div class="meter-bar green-bar" id="real-bar" style="width:0%"></div>
+          </div>
+        </div>
+
+        <div class="meter-row" style="margin-top:13px">
+          <div class="meter-lbl">
+            <span>Spoof Confidence</span>
+            <span class="meter-pct" id="spoof-pct">0.0%</span>
+          </div>
+          <div class="meter-track">
+            <div class="meter-bar red-bar" id="spoof-bar" style="width:0%"></div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+        <div class="feat-title">Feature Scores</div>
+
+        <div class="feat-row">
+          <span class="feat-name">Texture Entropy</span>
+          <div class="feat-track">
+            <div class="feat-fill" id="f-texture" style="width:0%"></div>
+          </div>
+          <span class="feat-val" id="v-texture">--</span>
+        </div>
+        <div class="feat-row">
+          <span class="feat-name">Sharpness</span>
+          <div class="feat-track">
+            <div class="feat-fill" id="f-sharp" style="width:0%"></div>
+          </div>
+          <span class="feat-val" id="v-sharp">--</span>
+        </div>
+        <div class="feat-row">
+          <span class="feat-name">Color Variance</span>
+          <div class="feat-track">
+            <div class="feat-fill" id="f-color" style="width:0%"></div>
+          </div>
+          <span class="feat-val" id="v-color">--</span>
+        </div>
+        <div class="feat-row">
+          <span class="feat-name">Frequency</span>
+          <div class="feat-track">
+            <div class="feat-fill" id="f-freq" style="width:0%"></div>
+          </div>
+          <span class="feat-val" id="v-freq">--</span>
+        </div>
+      </div>
+
+      <!-- Detection log -->
+      <div class="card">
+        <div class="card-hdr-row">
+          <div class="card-hdr" style="margin-bottom:0">Detection Log</div>
+          <button class="clear-btn" onclick="clearLog()">Clear</button>
+        </div>
+        <div class="log-scroll" id="log-list">
+          <div class="log-empty">Events will appear here once detection starts...</div>
+        </div>
+      </div>
+
+      <!-- How it works -->
+      <div class="card">
+        <div class="card-hdr">How It Works</div>
+        <div class="steps">
+          <div class="step">
+            <span class="step-n">01</span>
+            <div class="step-info"><b>Face Detection</b><span>DNN-based face localization</span></div>
+          </div>
+          <div class="step">
+            <span class="step-n">02</span>
+            <div class="step-info"><b>LBP Texture Analysis</b><span>Real skin has varied micro-texture</span></div>
+          </div>
+          <div class="step">
+            <span class="step-n">03</span>
+            <div class="step-info"><b>Frequency Domain</b><span>Screens produce Moire patterns</span></div>
+          </div>
+          <div class="step">
+            <span class="step-n">04</span>
+            <div class="step-info"><b>Temporal Analysis</b><span>Live faces show natural motion</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /right-col -->
+  </div><!-- /page-wrap -->
+
+  <!-- Snapshot modal -->
+  <div class="modal-bg hidden" id="snap-modal" onclick="closeModal(event)">
+    <div class="modal-box">
+      <button class="modal-x" onclick="closeSnapshot()">x</button>
+      <h3 style="margin-bottom:14px;font-size:15px;font-weight:600">Captured Frame</h3>
+      <img id="snap-img" style="width:100%;border-radius:10px;margin-bottom:14px;display:block" alt="Snapshot" />
+      <a id="snap-dl" class="ctrl-btn btn-start" style="display:inline-flex;text-decoration:none"
+        download="faceshield.jpg">Download</a>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+
+</html>
